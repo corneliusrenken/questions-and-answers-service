@@ -1,0 +1,61 @@
+question documents:
+
+{
+  _id: (created, but overwite with number)
+  product_id: <string>
+  body: <string> (maxLength = 1000)
+  date: (created)
+  name: <string> (maxLength = 60)
+  email: <string> (maxLength = 60)
+  helpfulness: <number> (default to 0)
+  reported: <boolean>  (default to false)
+  answers: <array of <document>>
+}
+
+answer documents:
+
+{
+  _id: (created, but overwite with number)
+  question: <document>
+  body: <string> (maxLength = 1000)
+  date: (created)
+  name: <string> (maxLength = 60)
+  email: <string> (maxLength = 60)
+  helpfulness: <number>  (default to 0)
+  photos: <array of <string>> (maxItems = 5)
+}
+
+
+
+// ================================================
+// validation?
+// ================================================
+
+// db = connect('questions_and_answers');
+
+// db.createCollection(questions, {
+//   validator: {
+//     $jsonSchema: {
+//       bsonType: 'object',
+//       // id and date created automatically
+//       required: ['product_id', 'body', 'name', 'email'],
+//       properties: {
+//         product_id: {
+//           bsonType: 'string'
+//         },
+//         body: {
+//           bsonType: 'string',
+//           maxLength: 1000
+//         },
+//         name: {
+//           bsonType: 'string',
+//           maxLength: 60
+//         },
+//         email: {
+//           bsonType: 'string',
+//           maxLength: 60
+//         },
+//       }
+//     }
+//   }
+// })
