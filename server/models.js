@@ -47,10 +47,6 @@ const pool = new Pool({
 //           client.release();
 //           console.log(res.rows);
 //         })
-//         .catch((err) => {
-//           client.release();
-//           console.error(err);
-//         })
 //     ))
 // );
 
@@ -118,10 +114,6 @@ module.exports.getAnswers = (question_id, page, count) => (
           };
           return response;
         })
-        .catch((err) => {
-          client.release();
-          console.error(err);
-        })
     ))
 );
 
@@ -140,13 +132,8 @@ module.exports.addQuestion = (product_id, body, name, email) => (
         INSERT INTO questions (product_id, body, username, email)
         VALUES ($1, $2, $3, $4)
         `, [product_id, body, name, email])
-        .then((res) => {
+        .then(() => {
           client.release();
-          console.log(res.rows);
-        })
-        .catch((err) => {
-          client.release();
-          console.error(err);
         })
     ))
 );
@@ -175,13 +162,8 @@ module.exports.addAnswer = (question_id, body, name, email, photos) => (
           ${photos.map((photo, index) => `($1, $${2 + index})`)}
           `, [res.rows[0].id, ...photos])
         ))
-        .then((res) => {
+        .then(() => {
           client.release();
-          console.log(res.rows);
-        })
-        .catch((err) => {
-          client.release();
-          console.error(err);
         })
     ))
 );
@@ -195,13 +177,8 @@ module.exports.markQuestionAsHelpful = (question_id) => (
     .then((client) => (
       client
         .query('UPDATE questions SET helpfulness = helpfulness + 1 WHERE id = $1', [question_id])
-        .then((res) => {
+        .then(() => {
           client.release();
-          console.log(res.rows);
-        })
-        .catch((err) => {
-          client.release();
-          console.error(err);
         })
     ))
 );
@@ -215,13 +192,8 @@ module.exports.reportQuestion = (question_id) => (
     .then((client) => (
       client
         .query('UPDATE questions SET reported = true WHERE id = $1', [question_id])
-        .then((res) => {
+        .then(() => {
           client.release();
-          console.log(res.rows);
-        })
-        .catch((err) => {
-          client.release();
-          console.error(err);
         })
     ))
 );
@@ -235,13 +207,8 @@ module.exports.markAnswerAsHelpful = (answer_id) => (
     .then((client) => (
       client
         .query('UPDATE answers SET helpfulness = helpfulness + 1 WHERE id = $1', [answer_id])
-        .then((res) => {
+        .then(() => {
           client.release();
-          console.log(res.rows);
-        })
-        .catch((err) => {
-          client.release();
-          console.error(err);
         })
     ))
 );
