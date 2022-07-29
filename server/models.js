@@ -113,6 +113,10 @@ module.exports.getQuestions = (product_id, page, count) => {
 
 // COALESCE(json_agg(a_p.*) FILTER (WHERE a_p.id IS NOT NULL), '[]') AS photos
 
+// COALESCE(json_agg(
+//   (SELECT rows FROM (SELECT a_p.id, a_p.url) AS rows)
+// ) FILTER (WHERE a_p.id IS NOT NULL), '[]') AS photos
+
 // json_agg((SELECT rows FROM (SELECT a_p.id, a_p.url) AS rows)) AS photos
 module.exports.getAnswers = (question_id, page, count) => {
   pool
@@ -127,7 +131,7 @@ module.exports.getAnswers = (question_id, page, count) => {
           a.username AS answerer_name,
           a.helpfulness,
           COALESCE(json_agg(
-            (SELECT rows FROM (SELECT a_p.id, a_p.url) AS rows)
+            (SELECT rows FROM (SELECT a_p.id, a_p.url) AS rows) ORDER BY a_p.id ASC
           ) FILTER (WHERE a_p.id IS NOT NULL), '[]') AS photos
         FROM
         ( SELECT
@@ -167,10 +171,12 @@ module.exports.getAnswers = (question_id, page, count) => {
             count,
             results: res.rows,
           };
-          console.log(response);
-          console.log('\n\n\n\n\n1:', res.rows[0]);
-          console.log('\n\n\n\n\n2:', res.rows[1]);
-          console.log('\n\n\n\n\n3:', res.rows[2]);
+          console.log('\n\n\n\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~:\n', response);
+          console.log('\n\n\n\n\n1:\n', res.rows[0]);
+          console.log('\n\n\n\n\n2:\n', res.rows[1]);
+          console.log('\n\n\n\n\n3:\n', res.rows[2]);
+          console.log('\n\n\n\n\n4:\n', res.rows[3]);
+          console.log('\n\n\n\n\n5:\n', res.rows[4]);
         })
         .catch((err) => {
           client.release();
@@ -320,4 +326,4 @@ module.exports.reportAnswer = (answer_id) => {
     ));
 };
 // question_id, body, name, email, photos
-console.log(module.exports.getAnswers(1, 1, 3));
+console.log(module.exports.getAnswers(1, 2, 5));
