@@ -1,8 +1,10 @@
 /* eslint-disable camelcase */
+const models = require('./models');
 
 // questions list
 // retrieves a list of questions for a particular product
 // *does not* include any reported questions (or answers???)
+// sorted by helpfulness
 // query parameters:
 // - product_id: integer
 // - page: integer (default 1)
@@ -26,6 +28,7 @@ module.exports.getQuestions = (req, res) => {
 // answers list
 // returns answers for a given question
 // *does not* include any reported answers
+// sorted by helpfulness
 // parameters:
 // - question_id: integer
 // query parameters:
@@ -82,7 +85,6 @@ module.exports.addAnswer = (req, res) => {
   const {
     body, name, email, photos,
   } = req.body;
-  console.log(photos);
   if (
     Number.isNaN(Number(question_id))
     || body === undefined
@@ -92,7 +94,7 @@ module.exports.addAnswer = (req, res) => {
   ) {
     res.status(400).send('BAD INPUT');
   } else {
-    res.send(`body: ${body}, name: ${name}, email: ${email}, photos: ${photos.join()}`);
+    res.send(`question_id: ${question_id}, body: ${body}, name: ${name}, email: ${email}, photos: ${photos.join()}`);
   }
 };
 
