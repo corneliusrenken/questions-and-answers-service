@@ -42,65 +42,6 @@ const pool = new Pool({
 //     ));
 // };
 
-// answers.body AS a_body,
-// answers.helpfulness AS a_help
-module.exports.getQuestions = (product_id, page, count) => {
-  pool
-    .connect()
-    .then((client) => (
-      client
-        .query(`
-        SELECT
-          questions.*,
-          json_agg(answers) AS answers
-        FROM
-        ( SELECT
-            *
-          FROM
-            questions q
-          WHERE
-            q.reported = false
-          AND
-            q.product_id = $1
-          ORDER BY
-            helpfulness DESC
-          LIMIT $2 OFFSET $3
-        ) AS questions
-        LEFT JOIN
-        ( SELECT
-            *
-          FROM
-            answers
-          WHERE
-            answers.reported = false
-          ORDER BY
-            helpfulness DESC
-        ) AS answers
-        ON
-          answers.question_id = questions.id
-        GROUP BY
-          questions.id,
-          questions.product_id,
-          questions.body,
-          questions.helpfulness,
-          questions.created_at,
-          questions.username,
-          questions.email,
-          questions.reported
-        ORDER BY
-          questions.helpfulness DESC
-        `, [product_id, count, (page - 1) * count])
-        .then((res) => {
-          client.release();
-          console.log(res.rows);
-        })
-        .catch((err) => {
-          client.release();
-          console.error(err);
-        })
-    ));
-};
-
 // answers list
 // returns answers for a given question
 // *does not* include any reported answers
@@ -110,14 +51,6 @@ module.exports.getQuestions = (product_id, page, count) => {
 // query parameters:
 // - page: integer (default 1)
 // - count: integer (default 5)
-
-// COALESCE(json_agg(a_p.*) FILTER (WHERE a_p.id IS NOT NULL), '[]') AS photos
-
-// COALESCE(json_agg(
-//   (SELECT rows FROM (SELECT a_p.id, a_p.url) AS rows)
-// ) FILTER (WHERE a_p.id IS NOT NULL), '[]') AS photos
-
-// json_agg((SELECT rows FROM (SELECT a_p.id, a_p.url) AS rows)) AS photos
 module.exports.getAnswers = (question_id, page, count) => {
   pool
     .connect()
