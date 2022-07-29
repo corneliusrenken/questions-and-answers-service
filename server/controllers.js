@@ -1,39 +1,22 @@
 /* eslint-disable camelcase */
 const models = require('./models');
 
-// questions list
-// retrieves a list of questions for a particular product
-// *does not* include any reported questions (or answers???)
-// sorted by helpfulness
-// query parameters:
-// - product_id: integer
-// - page: integer (default 1)
-// - count: integer (default 5)
-module.exports.getQuestions = (req, res) => {
-  const { product_id } = req.query;
-  let { page, count } = req.query;
-  page = req.query.page !== undefined ? req.query.page : 1;
-  count = req.query.count !== undefined ? req.query.count : 5;
-  if (
-    Number.isNaN(Number(product_id))
-    || Number.isNaN(Number(page))
-    || Number.isNaN(Number(count))
-  ) {
-    res.status(400).send('BAD INPUT');
-  } else {
-    res.send(`product id: ${product_id}, page: ${page}, count: ${count}`);
-  }
-};
+// module.exports.getQuestions = (req, res) => {
+//   const { product_id } = req.query;
+//   let { page, count } = req.query;
+//   page = req.query.page !== undefined ? req.query.page : 1;
+//   count = req.query.count !== undefined ? req.query.count : 5;
+//   if (
+//     Number.isNaN(Number(product_id))
+//     || Number.isNaN(Number(page))
+//     || Number.isNaN(Number(count))
+//   ) {
+//     res.status(400).send('BAD INPUT');
+//   } else {
+//     res.send(`product id: ${product_id}, page: ${page}, count: ${count}`);
+//   }
+// };
 
-// answers list
-// returns answers for a given question
-// *does not* include any reported answers
-// sorted by helpfulness
-// parameters:
-// - question_id: integer
-// query parameters:
-// - page: integer (default 1)
-// - count: integer (default 5)
 module.exports.getAnswers = (req, res) => {
   const { question_id } = req.params;
   let { page, count } = req.query;
@@ -46,16 +29,16 @@ module.exports.getAnswers = (req, res) => {
   ) {
     res.status(400).send('BAD INPUT');
   } else {
-    res.send(`question id: ${question_id}, page: ${page}, count: ${count}`);
+    models.getAnswers(question_id, page, count)
+      .then((response) => {
+        res.status(200).json(response);
+      })
+      .catch((err) => {
+        res.status(500).send(err);
+      });
   }
 };
 
-// add a question
-// body:
-// - body: string (text of q being asked)
-// - name: string (username of asker)
-// - email: string (email of asker)
-// - product_id: integer
 module.exports.addQuestion = (req, res) => {
   const {
     body, name, email, product_id,
@@ -68,18 +51,16 @@ module.exports.addQuestion = (req, res) => {
   ) {
     res.status(400).send('BAD INPUT');
   } else {
-    res.send(`body: ${body}, name: ${name}, email: ${email}, product_id: ${product_id}`);
+    models.addQuestion(product_id, body, name, email)
+      .then(() => {
+        res.status(201).send('Created');
+      })
+      .catch((err) => {
+        res.status(500).send(err);
+      });
   }
 };
 
-// add an answer
-// parameters:
-// - question_id: integer
-// body:
-// - body: string (text of q being asked)
-// - name: string (username of asker)
-// - email: string (email of asker)
-// - photos: array of strings
 module.exports.addAnswer = (req, res) => {
   const { question_id } = req.params;
   const {
@@ -94,54 +75,72 @@ module.exports.addAnswer = (req, res) => {
   ) {
     res.status(400).send('BAD INPUT');
   } else {
-    res.send(`question_id: ${question_id}, body: ${body}, name: ${name}, email: ${email}, photos: ${photos.join()}`);
+    models.addAnswer(question_id, body, name, email, photos)
+      .then(() => {
+        res.status(201).send('Created');
+      })
+      .catch((err) => {
+        res.status(500).send(err);
+      });
   }
 };
 
-// mark question as helpful
-// parameters:
-// - question_id: integer
 module.exports.markQuestionAsHelpful = (req, res) => {
   const { question_id } = req.params;
   if (Number.isNaN(Number(question_id))) {
     res.status(400).send('BAD INPUT');
   } else {
-    res.send(`question_id: ${question_id}`);
+    models.markQuestionAsHelpful(question_id)
+      .then(() => {
+        res.status(204).end();
+      })
+      .catch((err) => {
+        res.status(500).send(err);
+      });
   }
 };
 
-// report question
-// parameters:
-// - question_id: integer
 module.exports.reportQuestion = (req, res) => {
   const { question_id } = req.params;
   if (Number.isNaN(Number(question_id))) {
     res.status(400).send('BAD INPUT');
   } else {
-    res.send(`question_id: ${question_id}`);
+    models.reportQuestion(question_id)
+      .then(() => {
+        res.status(204).end();
+      })
+      .catch((err) => {
+        res.status(500).send(err);
+      });
   }
 };
 
-// mark answer as helpful
-// parameters:
-// - answer_id: integer
 module.exports.markAnswerAsHelpful = (req, res) => {
   const { answer_id } = req.params;
   if (Number.isNaN(Number(answer_id))) {
     res.status(400).send('BAD INPUT');
   } else {
-    res.send(`answer_id: ${answer_id}`);
+    models.markAnswerAsHelpful(answer_id)
+      .then(() => {
+        res.status(204).end();
+      })
+      .catch((err) => {
+        res.status(500).send(err);
+      });
   }
 };
 
-// report answer
-// parameters:
-// - answer_id: integer
 module.exports.reportAnswer = (req, res) => {
   const { answer_id } = req.params;
   if (Number.isNaN(Number(answer_id))) {
     res.status(400).send('BAD INPUT');
   } else {
-    res.send(`answer_id: ${answer_id}`);
+    models.reportAnswer(answer_id)
+      .then(() => {
+        res.status(204).end();
+      })
+      .catch((err) => {
+        res.status(500).send(err);
+      });
   }
 };

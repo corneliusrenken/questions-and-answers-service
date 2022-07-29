@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const controllers = require('./controllers');
 
-router.get('/qa/questions', controllers.getQuestions);
+// router.get('/qa/questions', controllers.getQuestions);
 
 router.get('/qa/questions/:question_id/answers', controllers.getAnswers);
 

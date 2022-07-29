@@ -14,22 +14,34 @@ const pool = new Pool({
 // - page: integer (default 1)
 // - count: integer (default 5)
 
-// module.exports.getQuestions = (product_id, page, count) => {
+// module.exports.getQuestions = (product_id, page, count) => (
 //   pool
 //     .connect()
 //     .then((client) => (
 //       client
+//         /* need:
+//          *
+//          * question
+//          * - question_id
+//          * - question_body
+//          * - question_date
+//          * - asker_name
+//          * - question_helpfulness
+//          * - reported
+//          *
+//          * - ALL answers as obj, key: id
+//          *  - id
+//          *  - body
+//          *  - date
+//          *  - answerer_name
+//          *  - helpfulness
+//          *  - ALL photos as array
+//          *
+//          *
+//          *
+//          */
 //         .query(`
-//         SELECT questions.body AS q_body, answers.body AS a_body FROM
-//         (SELECT * FROM questions q
-//         WHERE q.reported = false AND q.product_id = $1
-//         ORDER BY helpfulness DESC
-//         LIMIT $2 OFFSET $3) AS questions
-//         LEFT JOIN
-//         (SELECT * FROM answers
-//         WHERE answers.reported = false) AS answers
-//         ON answers.question_id = questions.id
-//         ORDER BY questions.helpfulness DESC
+
 //         `, [product_id, count, (page - 1) * count])
 //         .then((res) => {
 //           client.release();
@@ -39,8 +51,8 @@ const pool = new Pool({
 //           client.release();
 //           console.error(err);
 //         })
-//     ));
-// };
+//     ))
+// );
 
 // answers list
 // returns answers for a given question
@@ -51,7 +63,7 @@ const pool = new Pool({
 // query parameters:
 // - page: integer (default 1)
 // - count: integer (default 5)
-module.exports.getAnswers = (question_id, page, count) => {
+module.exports.getAnswers = (question_id, page, count) => (
   pool
     .connect()
     .then((client) => (
@@ -104,19 +116,14 @@ module.exports.getAnswers = (question_id, page, count) => {
             count,
             results: res.rows,
           };
-          console.log('\n\n\n\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~:\n', response);
-          console.log('\n\n\n\n\n1:\n', res.rows[0]);
-          console.log('\n\n\n\n\n2:\n', res.rows[1]);
-          console.log('\n\n\n\n\n3:\n', res.rows[2]);
-          console.log('\n\n\n\n\n4:\n', res.rows[3]);
-          console.log('\n\n\n\n\n5:\n', res.rows[4]);
+          return response;
         })
         .catch((err) => {
           client.release();
           console.error(err);
         })
-    ));
-};
+    ))
+);
 
 // add a question
 // body:
@@ -124,7 +131,7 @@ module.exports.getAnswers = (question_id, page, count) => {
 // - name: string (username of asker)
 // - email: string (email of asker)
 // - product_id: integer
-module.exports.addQuestion = (product_id, body, name, email) => {
+module.exports.addQuestion = (product_id, body, name, email) => (
   pool
     .connect()
     .then((client) => (
@@ -141,8 +148,8 @@ module.exports.addQuestion = (product_id, body, name, email) => {
           client.release();
           console.error(err);
         })
-    ));
-};
+    ))
+);
 
 // add an answer
 // parameters:
@@ -152,7 +159,7 @@ module.exports.addQuestion = (product_id, body, name, email) => {
 // - name: string (username of asker)
 // - email: string (email of asker)
 // - photos: array of strings
-module.exports.addAnswer = (question_id, body, name, email, photos) => {
+module.exports.addAnswer = (question_id, body, name, email, photos) => (
   pool
     .connect()
     .then((client) => (
@@ -176,13 +183,13 @@ module.exports.addAnswer = (question_id, body, name, email, photos) => {
           client.release();
           console.error(err);
         })
-    ));
-};
+    ))
+);
 
 // mark question as helpful
 // parameters:
 // - question_id: integer
-module.exports.markQuestionAsHelpful = (question_id) => {
+module.exports.markQuestionAsHelpful = (question_id) => (
   pool
     .connect()
     .then((client) => (
@@ -196,13 +203,13 @@ module.exports.markQuestionAsHelpful = (question_id) => {
           client.release();
           console.error(err);
         })
-    ));
-};
+    ))
+);
 
 // report question
 // parameters:
 // - question_id: integer
-module.exports.reportQuestion = (question_id) => {
+module.exports.reportQuestion = (question_id) => (
   pool
     .connect()
     .then((client) => (
@@ -216,13 +223,13 @@ module.exports.reportQuestion = (question_id) => {
           client.release();
           console.error(err);
         })
-    ));
-};
+    ))
+);
 
 // mark answer as helpful
 // parameters:
 // - answer_id: integer
-module.exports.markAnswerAsHelpful = (answer_id) => {
+module.exports.markAnswerAsHelpful = (answer_id) => (
   pool
     .connect()
     .then((client) => (
@@ -236,27 +243,20 @@ module.exports.markAnswerAsHelpful = (answer_id) => {
           client.release();
           console.error(err);
         })
-    ));
-};
+    ))
+);
 
 // report answer
 // parameters:
 // - answer_id: integer
-module.exports.reportAnswer = (answer_id) => {
+module.exports.reportAnswer = (answer_id) => (
   pool
     .connect()
     .then((client) => (
       client
         .query('UPDATE answers SET reported = true WHERE id = $1', [answer_id])
-        .then((res) => {
+        .then(() => {
           client.release();
-          console.log(res.rows);
         })
-        .catch((err) => {
-          client.release();
-          console.error(err);
-        })
-    ));
-};
-// question_id, body, name, email, photos
-console.log(module.exports.getAnswers(1, 2, 5));
+    ))
+);
