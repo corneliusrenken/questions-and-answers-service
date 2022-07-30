@@ -89,6 +89,8 @@ module.exports.getQuestions = (product_id, page, count) => (
           qs.username,
           qs.helpfulness,
           qs.reported
+        ORDER BY
+          qs.helpfulness DESC
         `, [product_id, count, (page - 1) * count])
         .then((res) => {
           console.dir(res.rows, { depth: null });
