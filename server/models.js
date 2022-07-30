@@ -14,41 +14,37 @@ const pool = new Pool({
 // - page: integer (default 1)
 // - count: integer (default 5)
 
-// module.exports.getQuestions = (product_id, page, count) => (
-//   pool
-//     .connect()
-//     .then((client) => (
-//       client
-//         /* need:
-//          *
-//          * question
-//          * - question_id
-//          * - question_body
-//          * - question_date
-//          * - asker_name
-//          * - question_helpfulness
-//          * - reported
-//          *
-//          * - ALL answers as obj, key: id
-//          *  - id
-//          *  - body
-//          *  - date
-//          *  - answerer_name
-//          *  - helpfulness
-//          *  - ALL photos as array
-//          *
-//          *
-//          *
-//          */
-//         .query(`
+module.exports.getQuestions = (product_id, page, count) => (
+  pool
+    .connect()
+    .then((client) => (
+      client
+        /* need:
+         * question
+         * - question_id
+         * - question_body
+         * - question_date
+         * - asker_name
+         * - question_helpfulness
+         * - reported
+         *
+         * - ALL answers as obj, key: id
+         *  - id
+         *  - body
+         *  - date
+         *  - answerer_name
+         *  - helpfulness
+         *  - ALL photos as array
+         */
+        .query(`
 
-//         `, [product_id, count, (page - 1) * count])
-//         .then((res) => {
-//           client.release();
-//           console.log(res.rows);
-//         })
-//     ))
-// );
+        `, [product_id, count, (page - 1) * count])
+        .then((res) => {
+          client.release();
+          console.log(res.rows);
+        })
+    ))
+);
 
 // answers list
 // returns answers for a given question
@@ -80,9 +76,9 @@ module.exports.getAnswers = (question_id, page, count) => (
           FROM
             answers
           WHERE
-            reported = false
-          AND
             question_id = $1
+          AND
+            reported = false
           ORDER BY
             helpfulness DESC
           LIMIT $2 OFFSET $3
@@ -152,21 +148,25 @@ module.exports.addAnswer = (question_id, body, name, email, photos) => (
     .then((client) => (
       client
         .query(`
+        WITH new_answer AS (
         INSERT INTO answers (question_id, body, username, email)
         VALUES ($1, $2, $3, $4)
         RETURNING id
-        `, [question_id, body, name, email])
-        .then((res) => (client.query(`
-          INSERT INTO answers_photos (answer_id, url)
-          VALUES
-          ${photos.map((photo, index) => `($1, $${2 + index})`)}
-          `, [res.rows[0].id, ...photos])
-        ))
+        )
+        INSERT INTO answers_photos (answer_id, url)
+        VALUES
+        ${photos.map((photo, index) => `((SELECT id FROM new_answer), $${5 + index})`)}
+        `, [question_id, body, name, email, ...photos])
         .then(() => {
           client.release();
         })
     ))
 );
+
+// ((SELECT id FROM new_answer), 'test')
+// ${photos.map((photo, index) => `((SELECT id FROM new_answer), $${5 + index})`)}
+
+module.exports.addAnswer(1, 'bodyyyy', 'nameeee', 'emaillll', ['photo1111', 'photo22222']);
 
 // mark question as helpful
 // parameters:
