@@ -163,11 +163,6 @@ module.exports.addAnswer = (question_id, body, name, email, photos) => (
     ))
 );
 
-// ((SELECT id FROM new_answer), 'test')
-// ${photos.map((photo, index) => `((SELECT id FROM new_answer), $${5 + index})`)}
-
-module.exports.addAnswer(1, 'bodyyyy', 'nameeee', 'emaillll', ['photo1111', 'photo22222']);
-
 // mark question as helpful
 // parameters:
 // - question_id: integer
