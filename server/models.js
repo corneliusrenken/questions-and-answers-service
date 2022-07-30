@@ -120,8 +120,6 @@ module.exports.getQuestions = (product_id, page, count) => (
     ))
 );
 
-// module.exports.getQuestions(1, 1, 1);
-
 // answers list
 // returns answers for a given question
 // *does not* include any reported answers
