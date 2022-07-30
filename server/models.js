@@ -13,14 +13,13 @@ const pool = new Pool({
 // - product_id: integer
 // - page: integer (default 1)
 // - count: integer (default 5)
-
-// json_agg(full_answers) AS answers
-
 module.exports.getQuestions = (product_id, page, count) => (
   pool
     .connect()
     .then((client) => (
       client
+        // although api doesn't require it, could still figure out how to order each
+        // question by helpfulness
         .query(`
         SELECT
           filtered_questions.id AS question_id,
@@ -29,16 +28,19 @@ module.exports.getQuestions = (product_id, page, count) => (
           filtered_questions.username AS asker_name,
           filtered_questions.helpfulness AS question_helpfulness,
           filtered_questions.reported AS reported,
-          COALESCE(json_agg(
-            (SELECT rows FROM (SELECT
+          COALESCE(
+            json_object_agg(
               full_answers.id,
-              full_answers.body,
-              full_answers.created_at AS date,
-              full_answers.username AS answerer_name,
-              full_answers.helpfulness,
-              full_answers.photos
-            ) AS rows) ORDER BY full_answers.helpfulness DESC
-          ) FILTER (WHERE full_answers.id IS NOT NULL), '[]') AS answers
+              (SELECT rows FROM (SELECT
+                full_answers.id,
+                full_answers.body,
+                full_answers.created_at AS date,
+                full_answers.username AS answerer_name,
+                full_answers.helpfulness,
+                full_answers.photos
+              ) AS rows)
+            )
+          FILTER (WHERE full_answers.id IS NOT NULL), '{}') AS answers
         FROM
         ( SELECT
             *
