@@ -75,7 +75,6 @@ module.exports.getQuestions = (product_id, page, count) => (
               reported = false
             ORDER BY
               helpfulness DESC
-            LIMIT $2 OFFSET $3
           ) AS a
           LEFT JOIN
           ( SELECT
