@@ -1,3 +1,4 @@
+/* eslint-disable no-multiple-empty-lines */
 /* eslint-disable camelcase */
 const { Pool } = require('pg');
 
@@ -21,31 +22,11 @@ module.exports.getQuestions = (product_id, page, count) => (
         // although api doesn't require it, could still figure out how to order each
         // question by helpfulness
         .query(`
-        SELECT
-          filtered_questions.id AS question_id,
-          filtered_questions.body AS question_body,
-          filtered_questions.created_at AS question_date,
-          filtered_questions.username AS asker_name,
-          filtered_questions.helpfulness AS question_helpfulness,
-          filtered_questions.reported AS reported,
-          COALESCE(
-            json_object_agg(
-              full_answers.id,
-              (SELECT rows FROM (SELECT
-                full_answers.id,
-                full_answers.body,
-                full_answers.created_at AS date,
-                full_answers.username AS answerer_name,
-                full_answers.helpfulness,
-                full_answers.photos
-              ) AS rows)
-            )
-          FILTER (WHERE full_answers.id IS NOT NULL), '{}') AS answers
-        FROM
-        ( SELECT
+        WITH qs AS (
+          SELECT
             *
           FROM
-            questions
+            questions q
           WHERE
             product_id = $1
           AND
@@ -53,9 +34,8 @@ module.exports.getQuestions = (product_id, page, count) => (
           ORDER BY
             helpfulness DESC
           LIMIT $2 OFFSET $3
-        ) AS filtered_questions
-        LEFT JOIN
-        ( SELECT
+        ), ans AS (
+          SELECT
             a.id,
             a.body,
             a.created_at,
@@ -66,49 +46,52 @@ module.exports.getQuestions = (product_id, page, count) => (
               (SELECT rows FROM (SELECT a_p.id, a_p.url) AS rows) ORDER BY a_p.id ASC
             ) FILTER (WHERE a_p.id IS NOT NULL), '[]') AS photos
           FROM
-          (
-            SELECT
-              *
-            FROM
-              answers
-            WHERE
-              reported = false
-            ORDER BY
-              helpfulness DESC
-          ) AS a
+            (SELECT a.* FROM answers a, qs WHERE a.question_id = qs.id AND a.reported = false) AS a
           LEFT JOIN
-          ( SELECT
-              *
-            FROM
-              answers_photos
-          ) AS a_p
+            answers_photos a_p
           ON
-            a.id = a_p.answer_id
+            a_p.answer_id = a.id
           GROUP BY
             a.id,
-            a.question_id,
             a.body,
             a.created_at,
             a.username,
-            a.email,
-            a.reported,
-            a.helpfulness
-          ORDER BY
-            a.helpfulness DESC
-        ) AS full_answers
-        ON
-          full_answers.question_id = filtered_questions.id
+            a.helpfulness,
+            a.question_id
+        )
+        SELECT
+          qs.id AS question_id,
+          qs.body AS question_body,
+          qs.created_at AS question_date,
+          qs.username AS asker_name,
+          qs.helpfulness AS question_helpfulness,
+          qs.reported AS reported,
+          COALESCE(
+            json_object_agg(
+              ans.id,
+              (SELECT rows FROM (SELECT
+                ans.id,
+                ans.body,
+                ans.created_at AS date,
+                ans.username AS answerer_name,
+                ans.helpfulness,
+                ans.photos
+              ) AS rows)
+            )
+          FILTER (WHERE ans.id IS NOT NULL), '{}') AS answers
+        FROM
+          qs,
+          ans
         GROUP BY
-          filtered_questions.id,
-          filtered_questions.body,
-          filtered_questions.created_at,
-          filtered_questions.username,
-          filtered_questions.helpfulness,
-          filtered_questions.reported
-        ORDER BY
-          filtered_questions.helpfulness DESC
+          qs.id,
+          qs.body,
+          qs.created_at,
+          qs.username,
+          qs.helpfulness,
+          qs.reported
         `, [product_id, count, (page - 1) * count])
         .then((res) => {
+          console.dir(res.rows, { depth: null });
           client.release();
           const response = {
             product_id,
