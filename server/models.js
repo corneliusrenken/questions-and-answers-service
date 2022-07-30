@@ -14,37 +14,111 @@ const pool = new Pool({
 // - page: integer (default 1)
 // - count: integer (default 5)
 
+// json_agg(full_answers) AS answers
+
 module.exports.getQuestions = (product_id, page, count) => (
   pool
     .connect()
     .then((client) => (
       client
-        /* need:
-         * question
-         * - question_id
-         * - question_body
-         * - question_date
-         * - asker_name
-         * - question_helpfulness
-         * - reported
-         *
-         * - ALL answers as obj, key: id
-         *  - id
-         *  - body
-         *  - date
-         *  - answerer_name
-         *  - helpfulness
-         *  - ALL photos as array
-         */
         .query(`
-
+        SELECT
+          filtered_questions.id AS question_id,
+          filtered_questions.body AS question_body,
+          filtered_questions.created_at AS question_date,
+          filtered_questions.username AS asker_name,
+          filtered_questions.helpfulness AS question_helpfulness,
+          filtered_questions.reported AS reported,
+          COALESCE(json_agg(
+            (SELECT rows FROM (SELECT
+              full_answers.id,
+              full_answers.body,
+              full_answers.created_at AS date,
+              full_answers.username AS answerer_name,
+              full_answers.helpfulness,
+              full_answers.photos
+            ) AS rows) ORDER BY full_answers.helpfulness DESC
+          ) FILTER (WHERE full_answers.id IS NOT NULL), '[]') AS answers
+        FROM
+        ( SELECT
+            *
+          FROM
+            questions
+          WHERE
+            product_id = $1
+          AND
+            reported = false
+          ORDER BY
+            helpfulness DESC
+          LIMIT $2 OFFSET $3
+        ) AS filtered_questions
+        LEFT JOIN
+        ( SELECT
+            a.id,
+            a.body,
+            a.created_at,
+            a.username,
+            a.helpfulness,
+            a.question_id,
+            COALESCE(json_agg(
+              (SELECT rows FROM (SELECT a_p.id, a_p.url) AS rows) ORDER BY a_p.id ASC
+            ) FILTER (WHERE a_p.id IS NOT NULL), '[]') AS photos
+          FROM
+          (
+            SELECT
+              *
+            FROM
+              answers
+            WHERE
+              reported = false
+            ORDER BY
+              helpfulness DESC
+            LIMIT $2 OFFSET $3
+          ) AS a
+          LEFT JOIN
+          ( SELECT
+              *
+            FROM
+              answers_photos
+          ) AS a_p
+          ON
+            a.id = a_p.answer_id
+          GROUP BY
+            a.id,
+            a.question_id,
+            a.body,
+            a.created_at,
+            a.username,
+            a.email,
+            a.reported,
+            a.helpfulness
+          ORDER BY
+            a.helpfulness DESC
+        ) AS full_answers
+        ON
+          full_answers.question_id = filtered_questions.id
+        GROUP BY
+          filtered_questions.id,
+          filtered_questions.body,
+          filtered_questions.created_at,
+          filtered_questions.username,
+          filtered_questions.helpfulness,
+          filtered_questions.reported
+        ORDER BY
+          filtered_questions.helpfulness DESC
         `, [product_id, count, (page - 1) * count])
         .then((res) => {
           client.release();
-          console.log(res.rows);
+          const response = {
+            product_id,
+            results: res.rows,
+          };
+          return response;
         })
     ))
 );
+
+// module.exports.getQuestions(1, 1, 1);
 
 // answers list
 // returns answers for a given question

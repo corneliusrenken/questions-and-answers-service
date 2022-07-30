@@ -1,21 +1,27 @@
 /* eslint-disable camelcase */
 const models = require('./models');
 
-// module.exports.getQuestions = (req, res) => {
-//   const { product_id } = req.query;
-//   let { page, count } = req.query;
-//   page = req.query.page !== undefined ? req.query.page : 1;
-//   count = req.query.count !== undefined ? req.query.count : 5;
-//   if (
-//     Number.isNaN(Number(product_id))
-//     || Number.isNaN(Number(page))
-//     || Number.isNaN(Number(count))
-//   ) {
-//     res.status(400).send('BAD INPUT');
-//   } else {
-//     res.send(`product id: ${product_id}, page: ${page}, count: ${count}`);
-//   }
-// };
+module.exports.getQuestions = (req, res) => {
+  const { product_id } = req.query;
+  let { page, count } = req.query;
+  page = req.query.page !== undefined ? req.query.page : 1;
+  count = req.query.count !== undefined ? req.query.count : 5;
+  if (
+    Number.isNaN(Number(product_id))
+    || Number.isNaN(Number(page))
+    || Number.isNaN(Number(count))
+  ) {
+    res.status(400).send('BAD INPUT');
+  } else {
+    models.getQuestions(product_id, page, count)
+      .then((response) => {
+        res.status(200).json(response);
+      })
+      .catch((err) => {
+        res.status(500).send(err);
+      });
+  }
+};
 
 module.exports.getAnswers = (req, res) => {
   const { question_id } = req.params;
