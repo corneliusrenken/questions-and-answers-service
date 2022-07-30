@@ -25,3 +25,21 @@ CREATE TABLE IF NOT EXISTS answers_photos (
   answer_id integer REFERENCES answers(id) NOT NULL,
   url text NOT NULL
 );
+
+ALTER TABLE questions
+ALTER COLUMN created_at TYPE timestamp with time zone
+USING TO_TIMESTAMP(created_at / 1000);
+
+ALTER TABLE answers
+ALTER COLUMN created_at TYPE timestamp with time zone
+USING TO_TIMESTAMP(created_at / 1000);
+
+ALTER TABLE questions
+ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE answers
+ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
+
+CREATE INDEX answers_question_id_hash ON answers USING HASH (question_id);
+CREATE INDEX answers_photos_answer_id_hash ON answers_photos USING HASH (answer_id);
+CREATE INDEX questions_product_id_hash ON questions USING HASH (product_id);
