@@ -93,7 +93,6 @@ module.exports.getQuestions = (product_id, page, count) => (
           qs.helpfulness DESC
         `, [product_id, count, (page - 1) * count])
         .then((res) => {
-          console.dir(res.rows, { depth: null });
           client.release();
           const response = {
             product_id,
@@ -200,26 +199,32 @@ module.exports.addQuestion = (product_id, body, name, email) => (
 // - name: string (username of asker)
 // - email: string (email of asker)
 // - photos: array of strings
-module.exports.addAnswer = (question_id, body, name, email, photos) => (
-  pool
+module.exports.addAnswer = (question_id, body, name, email, photos = []) => {
+  const queryText = photos.length === 0
+    ? `
+    INSERT INTO answers (question_id, body, username, email)
+    VALUES ($1, $2, $3, $4)
+    `
+    : `
+    WITH new_answer AS (
+    INSERT INTO answers (question_id, body, username, email)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id
+    )
+    INSERT INTO answers_photos (answer_id, url)
+    VALUES
+    ${photos.map((photo, index) => `((SELECT id FROM new_answer), $${5 + index})`)}
+    `;
+  return pool
     .connect()
     .then((client) => (
       client
-        .query(`
-        WITH new_answer AS (
-        INSERT INTO answers (question_id, body, username, email)
-        VALUES ($1, $2, $3, $4)
-        RETURNING id
-        )
-        INSERT INTO answers_photos (answer_id, url)
-        VALUES
-        ${photos.map((photo, index) => `((SELECT id FROM new_answer), $${5 + index})`)}
-        `, [question_id, body, name, email, ...photos])
+        .query(queryText, [question_id, body, name, email, ...photos])
         .then(() => {
           client.release();
         })
-    ))
-);
+    ));
+};
 
 // mark question as helpful
 // parameters:

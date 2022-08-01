@@ -68,6 +68,8 @@ module.exports.addQuestion = (req, res) => {
 };
 
 module.exports.addAnswer = (req, res) => {
+  console.log('adding');
+  console.log('body:', req.body);
   const { question_id } = req.params;
   const {
     body, name, email, photos,
@@ -77,7 +79,7 @@ module.exports.addAnswer = (req, res) => {
     || body === undefined
     || name === undefined
     || email === undefined
-    || photos === undefined
+    // photos is checked for undefined in addAnswer
   ) {
     res.status(400).send('BAD INPUT');
   } else {
