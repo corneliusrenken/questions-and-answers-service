@@ -161,8 +161,8 @@ module.exports.getAnswers = (question_id, page, count) => (
           client.release();
           const response = {
             question: question_id.toString(),
-            page,
-            count,
+            page: Number(page),
+            count: Number(count),
             results: res.rows,
           };
           return response;

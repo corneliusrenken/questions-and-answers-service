@@ -13,3 +13,5 @@ app.use('/', require('./routes'));
 app.listen(port, () => {
   console.log(`\nListening on port ${port}\n`);
 });
+
+module.exports = app;
