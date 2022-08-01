@@ -68,8 +68,6 @@ module.exports.addQuestion = (req, res) => {
 };
 
 module.exports.addAnswer = (req, res) => {
-  console.log('adding');
-  console.log('body:', req.body);
   const { question_id } = req.params;
   const {
     body, name, email, photos,
