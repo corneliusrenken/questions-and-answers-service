@@ -59,9 +59,9 @@ ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE answers
 ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
 
-SELECT setval('questions_id_seq', max(id)) FROM answers;
+SELECT setval('questions_id_seq', max(id)) FROM questions;
 SELECT setval('answers_id_seq', max(id)) FROM answers;
-SELECT setval('answers_photos_id_seq', max(id)) FROM answers;
+SELECT setval('answers_photos_id_seq', max(id)) FROM answers_photos;
 
 CREATE INDEX answers_question_id_hash ON answers USING HASH (question_id);
 CREATE INDEX answers_photos_answer_id_hash ON answers_photos USING HASH (answer_id);
