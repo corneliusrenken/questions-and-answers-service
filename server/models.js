@@ -3,7 +3,11 @@
 const { Pool } = require('pg');
 
 const pool = new Pool({
+  user: 'ubuntu',
+  password: 'password',
+  host: process.env.DB_URL,
   database: 'questions_and_answers',
+  port: 5432,
 });
 
 // questions list
