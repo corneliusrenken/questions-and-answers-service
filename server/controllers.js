@@ -15,10 +15,11 @@ module.exports.getQuestions = (req, res) => {
   } else {
     models.getQuestions(product_id, page, count)
       .then((response) => {
-        res.status(200).json(response);
-      })
-      .catch((err) => {
-        res.status(500).send(err);
+        if (response === null) {
+          res.status(500).end();
+        } else {
+          res.status(200).json(response);
+        }
       });
   }
 };
@@ -37,10 +38,11 @@ module.exports.getAnswers = (req, res) => {
   } else {
     models.getAnswers(question_id, page, count)
       .then((response) => {
-        res.status(200).json(response);
-      })
-      .catch((err) => {
-        res.status(500).send(err);
+        if (response === null) {
+          res.status(500).end();
+        } else {
+          res.status(200).json(response);
+        }
       });
   }
 };
@@ -58,11 +60,12 @@ module.exports.addQuestion = (req, res) => {
     res.status(400).send('BAD INPUT');
   } else {
     models.addQuestion(product_id, body, name, email)
-      .then(() => {
-        res.status(201).send('Created');
-      })
-      .catch((err) => {
-        res.status(500).send(err);
+      .then((response) => {
+        if (response === null) {
+          res.status(500).end();
+        } else {
+          res.status(201).send('Created');
+        }
       });
   }
 };
@@ -82,11 +85,12 @@ module.exports.addAnswer = (req, res) => {
     res.status(400).send('BAD INPUT');
   } else {
     models.addAnswer(question_id, body, name, email, photos)
-      .then(() => {
-        res.status(201).send('Created');
-      })
-      .catch((err) => {
-        res.status(500).send(err);
+      .then((response) => {
+        if (response === null) {
+          res.status(500).end();
+        } else {
+          res.status(201).send('Created');
+        }
       });
   }
 };
@@ -97,11 +101,12 @@ module.exports.markQuestionAsHelpful = (req, res) => {
     res.status(400).send('BAD INPUT');
   } else {
     models.markQuestionAsHelpful(question_id)
-      .then(() => {
-        res.status(204).end();
-      })
-      .catch((err) => {
-        res.status(500).send(err);
+      .then((response) => {
+        if (response === null) {
+          res.status(500).end();
+        } else {
+          res.status(204).end();
+        }
       });
   }
 };
@@ -112,11 +117,12 @@ module.exports.reportQuestion = (req, res) => {
     res.status(400).send('BAD INPUT');
   } else {
     models.reportQuestion(question_id)
-      .then(() => {
-        res.status(204).end();
-      })
-      .catch((err) => {
-        res.status(500).send(err);
+      .then((response) => {
+        if (response === null) {
+          res.status(500).end();
+        } else {
+          res.status(204).end();
+        }
       });
   }
 };
@@ -127,11 +133,12 @@ module.exports.markAnswerAsHelpful = (req, res) => {
     res.status(400).send('BAD INPUT');
   } else {
     models.markAnswerAsHelpful(answer_id)
-      .then(() => {
-        res.status(204).end();
-      })
-      .catch((err) => {
-        res.status(500).send(err);
+      .then((response) => {
+        if (response === null) {
+          res.status(500).end();
+        } else {
+          res.status(204).end();
+        }
       });
   }
 };
@@ -142,11 +149,12 @@ module.exports.reportAnswer = (req, res) => {
     res.status(400).send('BAD INPUT');
   } else {
     models.reportAnswer(answer_id)
-      .then(() => {
-        res.status(204).end();
-      })
-      .catch((err) => {
-        res.status(500).send(err);
+      .then((response) => {
+        if (response === null) {
+          res.status(500).end();
+        } else {
+          res.status(204).end();
+        }
       });
   }
 };

@@ -104,6 +104,10 @@ module.exports.getQuestions = (product_id, page, count) => (
           };
           return response;
         })
+        .catch(() => {
+          client.release();
+          return null;
+        })
     ))
 );
 
@@ -171,6 +175,10 @@ module.exports.getAnswers = (question_id, page, count) => (
           };
           return response;
         })
+        .catch(() => {
+          client.release();
+          return null;
+        })
     ))
 );
 
@@ -191,6 +199,10 @@ module.exports.addQuestion = (product_id, body, name, email) => (
         `, [product_id, body, name, email])
         .then(() => {
           client.release();
+        })
+        .catch(() => {
+          client.release();
+          return null;
         })
     ))
 );
@@ -227,6 +239,10 @@ module.exports.addAnswer = (question_id, body, name, email, photos = []) => {
         .then(() => {
           client.release();
         })
+        .catch(() => {
+          client.release();
+          return null;
+        })
     ));
 };
 
@@ -241,6 +257,10 @@ module.exports.markQuestionAsHelpful = (question_id) => (
         .query('UPDATE questions SET helpfulness = helpfulness + 1 WHERE id = $1', [question_id])
         .then(() => {
           client.release();
+        })
+        .catch(() => {
+          client.release();
+          return null;
         })
     ))
 );
@@ -257,6 +277,10 @@ module.exports.reportQuestion = (question_id) => (
         .then(() => {
           client.release();
         })
+        .catch(() => {
+          client.release();
+          return null;
+        })
     ))
 );
 
@@ -272,6 +296,10 @@ module.exports.markAnswerAsHelpful = (answer_id) => (
         .then(() => {
           client.release();
         })
+        .catch(() => {
+          client.release();
+          return null;
+        })
     ))
 );
 
@@ -286,6 +314,10 @@ module.exports.reportAnswer = (answer_id) => (
         .query('UPDATE answers SET reported = true WHERE id = $1', [answer_id])
         .then(() => {
           client.release();
+        })
+        .catch(() => {
+          client.release();
+          return null;
         })
     ))
 );
