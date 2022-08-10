@@ -18,98 +18,100 @@ const pool = new Pool({
 // - product_id: integer
 // - page: integer (default 1)
 // - count: integer (default 5)
-module.exports.getQuestions = (product_id, page, count) => (
-  pool
-    .connect()
-    .then((client) => (
-      client
-        // although api doesn't require it, could still figure out how to order each
-        // question by helpfulness
-        .query(`
-        WITH qs AS (
+module.exports.getQuestions = function getQuestions(product_id, page, count) {
+  return (
+    pool
+      .connect()
+      .then((client) => (
+        client
+          // although api doesn't require it, could still figure out how to order each
+          // question by helpfulness
+          .query(`
+          WITH qs AS (
+            SELECT
+              *
+            FROM
+              questions q
+            WHERE
+              product_id = $1
+            AND
+              reported = false
+            ORDER BY
+              helpfulness DESC
+            LIMIT $2 OFFSET $3
+          ), ans AS (
+            SELECT
+              a.id,
+              a.body,
+              a.created_at,
+              a.username,
+              a.helpfulness,
+              a.question_id,
+              COALESCE(json_agg(
+                (SELECT rows FROM (SELECT a_p.id, a_p.url) AS rows) ORDER BY a_p.id ASC
+              ) FILTER (WHERE a_p.id IS NOT NULL), '[]') AS photos
+            FROM
+              (SELECT a.* FROM answers a, qs WHERE a.question_id = qs.id AND a.reported = false) AS a
+            LEFT JOIN
+              answers_photos a_p
+            ON
+              a_p.answer_id = a.id
+            GROUP BY
+              a.id,
+              a.body,
+              a.created_at,
+              a.username,
+              a.helpfulness,
+              a.question_id
+          )
           SELECT
-            *
-          FROM
-            questions q
-          WHERE
-            product_id = $1
-          AND
-            reported = false
-          ORDER BY
-            helpfulness DESC
-          LIMIT $2 OFFSET $3
-        ), ans AS (
-          SELECT
-            a.id,
-            a.body,
-            a.created_at,
-            a.username,
-            a.helpfulness,
-            a.question_id,
-            COALESCE(json_agg(
-              (SELECT rows FROM (SELECT a_p.id, a_p.url) AS rows) ORDER BY a_p.id ASC
-            ) FILTER (WHERE a_p.id IS NOT NULL), '[]') AS photos
-          FROM
-            (SELECT a.* FROM answers a, qs WHERE a.question_id = qs.id AND a.reported = false) AS a
-          LEFT JOIN
-            answers_photos a_p
-          ON
-            a_p.answer_id = a.id
-          GROUP BY
-            a.id,
-            a.body,
-            a.created_at,
-            a.username,
-            a.helpfulness,
-            a.question_id
-        )
-        SELECT
-          qs.id AS question_id,
-          qs.body AS question_body,
-          qs.created_at AS question_date,
-          qs.username AS asker_name,
-          qs.helpfulness AS question_helpfulness,
-          qs.reported AS reported,
-          COALESCE(
-            json_object_agg(
-              ans.id,
-              (SELECT rows FROM (SELECT
+            qs.id AS question_id,
+            qs.body AS question_body,
+            qs.created_at AS question_date,
+            qs.username AS asker_name,
+            qs.helpfulness AS question_helpfulness,
+            qs.reported AS reported,
+            COALESCE(
+              json_object_agg(
                 ans.id,
-                ans.body,
-                ans.created_at AS date,
-                ans.username AS answerer_name,
-                ans.helpfulness,
-                ans.photos
-              ) AS rows)
-            )
-          FILTER (WHERE ans.id IS NOT NULL), '{}') AS answers
-        FROM
-          qs,
-          ans
-        GROUP BY
-          qs.id,
-          qs.body,
-          qs.created_at,
-          qs.username,
-          qs.helpfulness,
-          qs.reported
-        ORDER BY
-          qs.helpfulness DESC
-        `, [product_id, count, (page - 1) * count])
-        .then((res) => {
-          client.release();
-          const response = {
-            product_id,
-            results: res.rows,
-          };
-          return response;
-        })
-        .catch(() => {
-          client.release();
-          return null;
-        })
-    ))
-);
+                (SELECT rows FROM (SELECT
+                  ans.id,
+                  ans.body,
+                  ans.created_at AS date,
+                  ans.username AS answerer_name,
+                  ans.helpfulness,
+                  ans.photos
+                ) AS rows)
+              )
+            FILTER (WHERE ans.id IS NOT NULL), '{}') AS answers
+          FROM
+            qs,
+            ans
+          GROUP BY
+            qs.id,
+            qs.body,
+            qs.created_at,
+            qs.username,
+            qs.helpfulness,
+            qs.reported
+          ORDER BY
+            qs.helpfulness DESC
+          `, [product_id, count, (page - 1) * count])
+          .then((res) => {
+            client.release();
+            const response = {
+              product_id,
+              results: res.rows,
+            };
+            return response;
+          })
+          .catch(() => {
+            client.release();
+            return null;
+          })
+      ))
+  );
+};
 
 // answers list
 // returns answers for a given question
