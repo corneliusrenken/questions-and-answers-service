@@ -1,16 +1,12 @@
-## Info
-Service-oriented rewrite of a monolithic backend with the goal of being able to handle web-scale traffic. 
+E-commerce back end rebuilt to handle web-scale traffic
 
-Increased load capacity by 500%, keeping the latency under 2s and an error rate of under 0.5%.
+_Scaled to handle 300% more throughput_
 
-- redesigned schema
-- optimized PostgreSQL queries
-- implemented caching with NGINX
-- scaled horizontally using NGINX's load balancer
-- hosted on AWS EC2 instances
-
-## Used Technologies
-- [AWS](https://aws.amazon.com/)
-- [PostgreSQL](https://www.postgresql.org/)
-- [Express](https://expressjs.com/)
-- [NGINX](https://www.nginx.com/)
+## Features
+- Redesigned the [PostgreSQL](https://www.postgresql.org/) schema
+- Optimized SQL queries to handle large tables efficiently (3M+ rows)
+- Hosted on [AWS EC2](https://aws.amazon.com/ec2/) instances
+- Implemented response caching with [NGINX](https://www.nginx.com/) to meet optimization goals
+- Scaled horizontally using NGINX's load balancer to combat the initial performance spike when being flooded with requests
+- Benchmarked database performance using [K6](https://k6.io/)
+- Benchmarked AWS instance vitals and performance using [New Relic](https://newrelic.com/) and [Loader.io](https://loader.io/)
